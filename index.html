@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mapbox(shape_map)</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+      #legend {
+        padding: 10px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        line-height: 1.2em;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        width: 100px;
+      }
+
+      .legend-key {
+        display: inline-block;
+        border-radius: 20%;
+        width: 10px;
+        height: 10px;
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="map-overlay" id="legend"></div>
+
+    <script>
+      mapboxgl.accessToken =
+        'pk.eyJ1IjoiZHVkZGsiLCJhIjoiY2w2ZnNhOHFkMDJkajNjbzIwa2E2dXQyZSJ9.lexIguOZeWt3dsohycwvYg';
+
+      //create map
+      const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        style: 'mapbox://styles/duddk/cl6lfmrfa000614n1liu6fg5g/draft',
+        center: [-100, 38], // starting position [lng, lat]
+        zoom: 4, // starting zoom
+      });
+
+      //create popup, category
+      map.on('load', () => {
+        //legend(category)
+        const layers = [
+          '0-10',
+          '10-20',
+          '20-50',
+          '50-100',
+          '100-200',
+          '200-500',
+          '500-1000',
+        ];
+        const colors = [
+          '#849ef0',
+          '#7793ee',
+          '#5c7deb',
+          '#3861e5',
+          '1242de',
+          '0d2e9c',
+          '011c74',
+        ];
+
+        const legend = document.getElementById('legend');
+
+        layers.forEach((layer, i) => {
+          const color = colors[i];
+          const item = document.createElement('div');
+          const key = document.createElement('span');
+          key.className = 'legend-key';
+          key.style.backgroundColor = color;
+
+          const value = document.createElement('span');
+          value.innerHTML = `${layer}`;
+          item.appendChild(key);
+          item.appendChild(value);
+          legend.appendChild(item);
+        });
+      });
+    </script>
+  </body>
+</html>
