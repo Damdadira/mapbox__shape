@@ -138,17 +138,6 @@
           },
         });
 
-        map.addLayer({
-          id: 'state-borders',
-          type: 'line',
-          source: 'states',
-          layout: {},
-          paint: {
-            'line-color': '#ffffff',
-            'line-width': 0,
-          },
-        });
-
         // When the user moves their mouse over the state-fill layer, we'll update the
         // feature state for the feature under the mouse.
         map.on('mousemove', 'state-fills', (e) => {
