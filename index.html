@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
     <title>Mapbox(shape_map)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
     <link
-      href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
+      href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
       rel="stylesheet"
     />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
     <style>
       body {
         margin: 0;
@@ -37,7 +36,7 @@
       #legend {
         padding: 10px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        height: 150px;
+        height: 170px;
         width: 100px;
       }
 
@@ -51,37 +50,52 @@
       }
 
       #features {
-        text-align: center;
         margin-top: 20px;
         top: 0;
-        height: 150px;
+        height: 140px;
         width: 300px;
       }
 
-      #features p {
-        padding-top: 12px;
+      #features h2 {
+        margin: 18px 0;
+        text-align: center;
+      }
+
+      #pd {
+        margin: 0;
+        padding-left: 16px;
+      }
+
+      #pd h3 {
+        margin: 0;
+        margin-bottom: 8px;
+      }
+
+      #pd p {
+        margin: 0;
       }
     </style>
   </head>
   <body>
     <div id="map"></div>
-    <div class="map-overlay" id="legend"></div>
     <div class="map-overlay" id="features">
       <h2>US population density</h2>
       <div id="pd"></div>
     </div>
+    <div class="map-overlay" id="legend"></div>
 
     <script>
+      // define access token
       mapboxgl.accessToken =
         'pk.eyJ1IjoiZHVkZGsiLCJhIjoiY2w2ZnNhOHFkMDJkajNjbzIwa2E2dXQyZSJ9.lexIguOZeWt3dsohycwvYg';
 
-      //create map
+      // create map
       const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        style: 'mapbox://styles/duddk/cl6lfmrfa000614n1liu6fg5g/draft',
+        container: 'map', // container id
+        style: 'mapbox://styles/duddk/cl6napen3000215uh0q4e792a/draft', // map style URL from Mapbox Studio
       });
 
-      //create popup, category
+      //create popup, legend
       let hoveredStateId = null;
 
       map.on('load', () => {
@@ -93,7 +107,7 @@
           [-47.63671875, 52.696361],
         ]);
 
-        //legend(category)
+        //create legend
         const layers = [
           '0-10',
           '10-20',
@@ -102,9 +116,11 @@
           '100-200',
           '200-500',
           '500-1000',
+          '1000+',
         ];
         const colors = [
-          '#849ef0',
+          '#c9d4f8',
+          '#a9baf4',
           '#7793ee',
           '#5c7deb',
           '#3861e5',
@@ -129,10 +145,21 @@
           legend.appendChild(item);
         });
 
+        // change info window on hover
+        map.on('mousemove', (event) => {
+          const states = map.queryRenderedFeatures(event.point, {
+            layers: ['statedata'],
+          });
+          document.getElementById('pd').innerHTML = states.length
+            ? `<h3>${states[0].properties.name}</h3><p><strong>${states[0].properties.density}</strong> people per square mile</p>`
+            : ``;
+        });
+
         //hover
         map.addSource('states', {
           type: 'geojson',
           data: 'https://docs.mapbox.com/mapbox-gl-js/assets/us_states.geojson',
+          generateId: true,
         });
 
         // The feature-state dependent fill-opacity expression will render the hover effect
@@ -147,7 +174,7 @@
             'fill-opacity': [
               'case',
               ['boolean', ['feature-state', 'hover'], false],
-              0.5,
+              0.65,
               0,
             ],
           },
@@ -170,42 +197,16 @@
             );
           }
 
-          //change info window on hover
-          const feature = map.queryRenderedFeatures(e.point, {
-            layers: ['choropleth-labels'],
-          });
-          document.getElementById('pd').innerHTML = feature.length
-            ? `<h3>${feature[0].properties.name}</h3><p><strong>${feature[0].properties.density}</strong> people per square mile</p>`
-            : `<p>no data</p>`;
-        });
-
-        // When the mouse leaves the state-fill layer, update the feature state of the
-        // previously hovered feature.
-        map.on('mouseleave', 'state-fills', () => {
-          if (hoveredStateId !== null) {
-            map.setFeatureState(
-              { source: 'states', id: hoveredStateId },
-              { hover: false }
-            );
-          }
-          hoveredStateId = null;
-        });
-
-        //change info window on hover2(popup)
-        map.on('mouseenter', 'statedata', (e) => {
-          const popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-          })
-            .setLngLat(e.lngLat)
-            .setHTML(
-              `<h2>${e.features[0].properties.name}</h2>
-              <strong>${e.features[0].properties.density}</strong> people per square mile`
-            )
-            .addTo(map);
-
-          map.on('mouseleave', 'statedata', (e) => {
-            popup.remove(e);
+          // When the mouse leaves the state-fill layer, update the feature state of the
+          // previously hovered feature.
+          map.on('mouseleave', 'state-fills', () => {
+            if (hoveredStateId !== null) {
+              map.setFeatureState(
+                { source: 'states', id: hoveredStateId },
+                { hover: false }
+              );
+            }
+            hoveredStateId = null;
           });
         });
       });
